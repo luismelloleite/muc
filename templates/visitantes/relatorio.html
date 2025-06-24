@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gerar Relatório{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Gerar Relatório</h1>
+    </div>
+</div>
+<div class="br-container">
+    <div class="br-row">
+        <div class="br-col-sm-12">
+            <div class="br-card">
+                <div class="card-content">
+                    <div class="card-body p-3">
+                        <form class="br-form" method="post">
+                            {% csrf_token %}
+
+                            {% if form.non_field_errors %}
+                            <div class="br-message danger" role="alert">
+                                <div class="icon"><i class="fas fa-times-circle" aria-hidden="true"></i></div>
+                                <div class="content">
+                                    {% for error in form.non_field_errors %}
+                                    <span class="message-title">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <div class="br-input d-inline-block w-auto">
+                                <div class="br-grid-row grid-row-flex">
+                                    <div class="mr-2">
+                                        <label for="{{ form.data_inicio.id_for_label }}">Data Inicial</label>
+                                        {{ form.data_inicio }}
+                                        {% if form.data_inicio.errors %}
+                                        <span class="feedback danger" role="alert">
+                                            <i class="fas fa-times-circle" aria-hidden="true"></i>
+                                            {{ form.data_inicio.errors }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mr-2">
+                                        <label for="{{ form.data_fim.id_for_label }}">Data Final</label>
+                                        {{ form.data_fim }}
+                                        {% if form.data_fim.errors %}
+                                        <span class="feedback danger" role="alert">
+                                            <i class="fas fa-times-circle" aria-hidden="true"></i>
+                                            {{ form.data_fim.errors }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <h3>Campos do Relatório</h3>
+                                <div class="br-grid-row grid-row-flex">
+                                    {% for campo in form.campos %}
+                                    <div class="mb-1 grid-row-width-30">
+                                        <div class="br-checkbox">
+                                            {{ campo.tag }}
+                                            <label for="{{ campo.id_for_label }}">
+                                                <span class="text">{{ campo.choice_label }}</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <h3>Filtros</h3>
+                                <div class="br-grid-row grid-row-flex">
+                                    <div class="mr-2">
+                                        <div class="br-select">
+                                            <label for="{{ form.bloco.id_for_label }}">{{ form.bloco.label }}</label>
+                                            {{ form.bloco }}
+                                        </div>
+                                    </div>
+                                    <div class="mr-2 mb-1">
+                                        <div class="br-select">
+                                            <label for="{{ form.tipo_documento.id_for_label }}">
+                                                {{ form.tipo_documento.label }}</label>
+                                            {{ form.tipo_documento }}
+                                        </div>
+                                    </div>
+                                    <div class="">
+                                        <div class="br-select">
+                                            <label for="{{ form.tem_veiculo.id_for_label }}">
+                                                {{ form.tem_veiculo.label }}</label>
+                                            {{ form.tem_veiculo }}
+                                        </div>
+                                    </div>
+                                    <div class="mr-2"></div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <h3>Formato de Exportação</h3>
+                                <div class="br-grid-row grid-row-flex">
+                                    {% for formato in form.formato %}
+                                    <div class="mr-2 mb-1">
+                                        <div class="br-radio">
+                                            {{ formato.tag }}
+                                            <label for="{{ formato.id_for_label }}">
+                                                <span class="text">{{ formato.choice_label }}</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-end">
+                                <div class="br-button-group">
+                                    <button class="br-button primary" type="submit">
+                                        <i class="fas fa-download" aria-hidden="true"></i>
+                                        Gerar Relatório
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

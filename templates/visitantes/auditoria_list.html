@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Auditoria{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="br-audit">
+        <div class="br-list">
+            <div class="br-item">
+                <div class="br-list-content">
+                    <h1 class="mb-0">Auditoria</h1>
+                </div>
+            </div>
+        </div>
+    <div class="br-card">
+        <div class="card-content">
+            <div class="br-list mb-3 col-md-6">
+                <form method="get" class="d-flex align-items-end">
+                    <div class="br-input input-highlight" style="flex-grow: 1;">
+                        <div class="input-group">
+                            <input type="text" name="search" placeholder="Buscar..." value="{{ search_query }}">
+                            <button class="br-button circle" type="submit" aria-label="Pesquisar" small>
+                                <i class="fas fa-search" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="br-select ml-2">
+                        <label for="order_by">Ordenar por</label><br>
+                        <select id="order_by" name="order_by" onchange="this.form.submit()">
+                            <option value="-data_hora" {% if order_by == '-data_hora' %}selected{% endif %}>Mais recente
+                            </option>
+                            <option value="data_hora" {% if order_by == 'data_hora' %}selected{% endif %}>Mais antigo</option>
+                            <option value="usuario" {% if order_by == 'usuario' %}selected{% endif %}>Usuário</option>
+                            <option value="acao" {% if order_by == 'acao' %}selected{% endif %}>Ação</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+
+            <div class="br-table">
+                <div class="br-table-header">
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Usuário</th>
+                            <th>Ação</th>
+                            <th>Modelo</th>
+                            <th>ID do Objeto</th>
+                            <th>Payload</th>
+                            <th>Data e Hora</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td>{{ log.usuario }}</td>
+                            <td>{{ log.acao }}</td>
+                            <td>{{ log.modelo }}</td>
+                            <td>{{ log.objeto_id }}</td>
+                            <td>
+                                <button class="br-button" type="button" data-toggle="modal"
+                                    data-target="#modalPayload{{ log.id }}" small>
+                                    <i class="fas fa-eye" aria-hidden="true"></i> Ver Payload
+                                </button>
+
+                                <div class="br-modal" id="modalPayload{{ log.id }}">
+                                    <div class="br-modal-dialog">
+                                        <div class="br-modal-content">
+                                            <div class="br-modal-header">
+                                                <div class="br-modal-title">Payload do Log #{{ log.id }}</div>
+                                                <button class="br-button close" type="button" data-dismiss="modal">
+                                                    <i class="fas fa-times" aria-hidden="true"></i>
+                                                </button>
+                                            </div>
+                                            <div class="br-modal-body">
+                                                <pre>{{ log.descricao }}</pre>
+                                            </div>
+                                            <div class="br-modal-footer">
+                                                <button class="br-button" type="button" data-dismiss="modal">Fechar</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ log.data_hora|date:"d/m/Y H:i" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">Nenhum log encontrado.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+        <!-- Paginação -->
+        {% if is_paginated %}
+        <div class="br-pagination">
+            <div class="br-pagination-content">
+                <div class="br-pagination-button-group">
+                    {% if page_obj.has_previous %}
+                    <button class="br-button" type="button"
+                        onclick="window.location.href='?page=1&search={{ search_query }}&order_by={{ order_by }}'">
+                        <i class="fas fa-angle-double-left" aria-hidden="true"></i>
+                    </button>
+                    <button class="br-button" type="button"
+                        onclick="window.location.href='?page={{ page_obj.previous_page_number }}&search={{ search_query }}&order_by={{ order_by }}'">
+                        <i class="fas fa-angle-left" aria-hidden="true"></i>
+                    </button>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <button class="br-button" type="button" active>{{ num }}</button>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} <button
+                        class="br-button" type="button"
+                        onclick="window.location.href='?page={{ num }}&search={{ search_query }}&order_by={{ order_by }}'">
+                        {{ num }}
+                        </button>
+                        {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <button class="br-button" type="button"
+                            onclick="window.location.href='?page={{ page_obj.next_page_number }}&search={{ search_query }}&order_by={{ order_by }}'">
+                            <i class="fas fa-angle-right" aria-hidden="true"></i>
+                        </button>
+                        <button class="br-button" type="button"
+                            onclick="window.location.href='?page={{ page_obj.paginator.num_pages }}&search={{ search_query }}&order_by={{ order_by }}'">
+                            <i class="fas fa-angle-double-right" aria-hidden="true"></i>
+                        </button>
+                        {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  {% if error_title %}
+    {{ error_title }} - Sistema de Controle de Visitantes
+  {% else %}
+    Erro - Sistema de Controle de Visitantes
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="template-erro">
+  <div class="row my-5">
+    <div class="col imagem-erro">
+      <img
+        src="../static/images/error404.png"
+        alt="imagem de erro"
+      />
+    </div>
+    <div class="col erro-text">
+      <div class="text-support-03">
+        <p class="text-up-06 text-semi-bold my-3">Estamos constrangidos em te ver por aqui</p>
+      </div>
+      <div class="text-secondary-06">
+        <p class="text-up-03 text-medium my-3">
+          Mas, podemos ajudá-lo a encontrar o que está procurando de outra forma
+        </p>
+      </div>
+      <p class="my-3">
+        Talvez você tenha se equivocado ao digitar o endereço URL ou quem sabe nós tenhamos cometido uma falha por aqui.
+        Se possível, relate o erro para que possamos sempre estar melhorando.
+      </p>
+    </div>
+  </div>
+  <div class="row my-4">
+    <div class="col">
+      <div class="buttons-auxiliary my-4">
+        <a href="{% url 'visitantes:visitante_list' %}" class="br-button crumb">
+            <i class="fas fa-home" aria-hidden="true"></i><span>Ir para Página Principal</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

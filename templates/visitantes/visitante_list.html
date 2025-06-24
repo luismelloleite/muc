@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Visitantes</h1>
+        {% if user.nivel_acesso != 'visualizacao' %}
+        <a href="{% url 'visitantes:visitante_create' %}" class="br-button primary" type="button">
+            <i class="fas fa-plus" aria-hidden="true"></i>
+            <span class="ml-1">Novo Visitante</span>
+        </a>
+        {% else %}
+        <button class="br-button secondary" type="button" disabled
+            title="Apenas administradores podem adicionar visitantes">
+            <i class="fas fa-plus" aria-hidden="true"></i>
+            <span class="ml-1">Novo Visitante</span>
+        </button>
+        {% endif %}
+    </div>
+</div>
+<div class="br-card">
+    <div class="card-content">
+        <!-- Search and Sort Form -->
+        <div class="br-list mb-3 col-md-6">
+            <form method="get" class="d-flex align-items-end">
+                <div class="br-input input-highlight" style="flex-grow: 1;">
+                    <div class="input-group">
+                        <input type="text" name="search" placeholder="Buscar..." value="{{ search_query }}">
+                        <button class="br-button circle" type="submit" aria-label="Pesquisar" small>
+                            <i class="fas fa-search" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="br-select ml-2">
+                    <label for="sort-select">Ordenar por:</label><br>
+                    <select id="sort-select" name="sort" onchange="this.form.submit()">
+                        {% for value, label in sort_options.items %}
+                        <option value="{{ value }}" {% if value == current_sort %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
+
+        <!-- Table -->
+        <div class="br-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Nome</th>
+                        <th scope="col">Documento</th>
+                        <th scope="col">Visitado (A)</th>
+                        <th scope="col">Bloco/Apartamento</th>
+                        <th scope="col">Horário Entrada</th>
+                        <th scope="col">Horário Saída</th>
+                        <th scope="col">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for visitante in visitantes %}
+                    <tr>
+                        <td>{{ visitante.nome_completo }}</td>
+                        <td>{{ visitante.tipo_documento }}: {{ visitante.numero_documento }}</td>
+                        <td>{{ visitante.visitado }}</td>
+                        <td>{{ visitante.bloco }}/{{ visitante.apartamento }}</td>
+                        <td>{{ visitante.horario_entrada|date:"d/m/Y H:i" }}</td>
+                        <td>{{ visitante.horario_saida|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <div class="br-list horizontal transparent">
+                                {% if user.nivel_acesso != 'visualizacao' %}
+                                <div class="br-item transparent">
+                                    <a href="{% url 'visitantes:visitante_update' visitante.pk %}"
+                                        class="br-button circle" type="button" aria-label="Editar" small
+                                        data-tooltip="Editar" data-placement="top">
+                                        <i class="fas fa-edit" aria-hidden="true"></i>
+                                    </a>
+                                </div>
+                                <div class="br-item transparent">
+                                    <a href="{% url 'visitantes:visitante_delete' visitante.pk %}"
+                                        class="br-button circle danger" type="button" aria-label="Excluir" small
+                                        data-tooltip="Excluir" data-placement="top">
+                                        <i class="fas fa-trash" aria-hidden="true"></i>
+                                    </a>
+                                </div>
+                                {% else %}
+                                <div class="br-item transparent">
+                                    <button class="br-button circle" type="button" disabled
+                                        aria-label="Editar (apenas administradores)" small
+                                        data-tooltip="Apenas administradores podem editar">
+                                        <i class="fas fa-edit" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                                <div class="br-item transparent">
+                                    <button class="br-button circle" type="button" disabled
+                                        aria-label="Excluir (apenas administradores)" small
+                                        data-tooltip="Apenas administradores podem excluir">
+                                        <i class="fas fa-trash" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="br-message warning" role="alert">
+                                <div class="icon"><i class="fas fa-exclamation-triangle" aria-hidden="true"></i></div>
+                                <div class="content"><span class="message-title">Nenhum visitante encontrado.</span>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link"
+                href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}">
+                <i class="fas fa-angle-double-left"></i>
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link"
+                href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}">
+                <i class="fas fa-angle-left"></i>
+            </a>
+        </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <li class="page-item active">
+            <span class="page-link">{{ num }}</span>
+        </li>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} <li class="page-item">
+            <a class="page-link"
+                href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}">
+                {{ num }}
+            </a>
+            </li>
+            {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link"
+                    href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link"
+                    href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            </li>
+            {% endif %}
+    </ul>
+</nav>
+{% endif %}
+</div>
+{% endblock %}

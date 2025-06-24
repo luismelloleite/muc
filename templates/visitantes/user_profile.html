@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Meu Perfil{% endblock %}
+
+{% block content %}
+<div class="container-lg mt-4">
+    <div class="row">
+        <!-- Card: Meus Dados -->
+        <div class="col-md-6">
+            <div class="br-card mb-3 p-4">
+                <div class="br-card-header">
+                    <div class="br-card-title">
+                        <h5 class="text-bold">
+                            <i class="fas fa-user" aria-hidden="true"></i> Meus Dados
+                        </h5>
+                    </div>
+                </div>
+                <div class="br-card-body">
+
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="br-message {{ message.tags }} mt-2" role="alert">
+                        <div class="br-message-body">
+                            <div class="br-message-content">
+                                <span class="br-message-text">{{ message }}</span>
+                            </div>
+                            <button class="br-button circle small" type="button" aria-label="Fechar">
+                                <i class="fas fa-times" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+
+                    <div class="mt-4">
+                        <h6 class="text-bold mb-2">Informações do Usuário</h6>
+                        <dl class="mb-0">
+                            <div class="d-flex">
+                                <dt class="text-sm">Nível de Acesso:</dt>
+                                <dd class="mb-2">{{ user.get_nivel_acesso_display }}</dd>
+                            </div>
+                            <div class="d-flex">
+                                <dt class="text-sm">Status:</dt>
+                                <dd>
+                                    {% if user.is_active %}
+                                    <span class="text-success bg-success-light">Ativo</span>
+                                    {% else %}
+                                    <span class="text-danger bg-danger-light">Inativo</span>
+                                    {% endif %}
+                                </dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="br-input">
+                            {{ form|crispy }}
+                        </div>
+                        <button type="submit" class="br-button primary mt-3">
+                            <i class="fas fa-save me-1" aria-hidden="true"></i> Salvar Alterações
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Card: Alterar Senha -->
+        <div class="col-md-6">
+            <div class="br-card mb-3 p-4">
+                <div class="br-card-header">
+                    <div class="br-card-title">
+                        <h5 class="text-bold">
+                            <i class="fas fa-key" aria-hidden="true"></i> Alterar Senha
+                        </h5>
+                    </div>
+                </div>
+                <div class="br-card-body">
+                    <form method="post" action="{% url 'visitantes:change_password' %}" class="mt-2">
+                        {% csrf_token %}
+                        <div class="br-input">
+                            {{ password_form|crispy }}
+                        </div>
+                        <button type="submit" class="br-button primary mt-3">
+                            <i class="fas fa-save me-1" aria-hidden="true"></i> Alterar Senha
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

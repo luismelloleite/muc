@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="br-container py-3">
+    <div class="row justify-content-center">  <!-- Adicionei justify-content-center aqui -->
+        <div class="col-sm-12 col-md-8">  <!-- Removi o offset-md-2 e ajustei o tamanho -->
+            <div class="br-card">
+                <div class="card-header">
+                    <div class="d-flex align-items-center">
+                        <div class="content">
+                            <h2 class="mb-0">Confirmar Exclusão</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <p class="lead">Tem certeza que deseja excluir o visitante <strong>{{ object.nome_completo }}</strong>?</p>
+                    <p>Esta ação não pode ser desfeita.</p>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="br-list">
+                            <div class="d-flex justify-content-end mt-3">
+                                <a href="{% url 'visitantes:visitante_list' %}" class="br-button secondary mr-2" type="button">Cancelar</a>
+                                <button class="br-button danger" type="submit">
+                                    <span class="text">Confirmar Exclusão</span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

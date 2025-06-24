@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gerenciamento de Usuários{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Gerenciamento de Usuários</h1>
+        <a href="{% url 'visitantes:user_create' %}" class="br-button primary" type="button">
+            <i class="fas fa-user-plus" aria-hidden="true"></i>
+            <span class="ml-1">Novo Usuário</span>
+        </a>
+    </div>
+    {% if messages %}
+    {% for message in messages %}
+    <div class="br-message {{ message.tags }}" role="alert">
+        <div class="br-message-body">
+            <div class="br-message-content">
+                <span class="br-message-text">{{ message }}</span>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="br-card">
+        <div class="card-content">
+            <div class="br-table">
+                <div class="table-header"></div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Nome</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Nível de Acesso</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Data de Criação</th>
+                            <th scope="col">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.get_full_name }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.get_nivel_acesso_display }}</td>
+                            <td>
+                                {% if user.is_active %}
+                                <span class="br-tag success">
+                                    <i class="fas fa-check" aria-hidden="true"></i>
+                                    Ativo
+                                </span>
+                                {% else %}
+                                <span class="br-tag danger">
+                                    <i class="fas fa-times" aria-hidden="true"></i>
+                                    Inativo
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td>{{ user.data_criacao|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <div class="br-list horizontal transparent">
+                                    <div class="br-item transparent">
+                                        <a href="{% url 'visitantes:user_update' user.pk %}" class="br-button circle"
+                                            type="button" aria-label="Editar" small data-tooltip="Editar usuário">
+                                            <i class="fas fa-edit" aria-hidden="true"></i>
+                                        </a>
+                                    </div>
+                                    <div class="br-item transparent">
+                                        <a href="{% url 'visitantes:user_delete' user.pk %}"
+                                            class="br-button circle danger" type="button" aria-label="Excluir" small
+                                            data-tooltip="Excluir usuário">
+                                            <i class="fas fa-trash" aria-hidden="true"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6">
+                                <div class="br-message info" role="alert">
+                                    <div class="icon"><i class="fas fa-info-circle" aria-hidden="true"></i></div>
+                                    <div class="content"><span class="message-title">Nenhum usuário cadastrado.</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
