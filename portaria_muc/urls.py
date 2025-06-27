@@ -7,6 +7,8 @@ from visitantes.views import VisitanteViewSet
 from django.conf.urls import handler400, handler403, handler404, handler500
 from .views import generic_error_view
 from functools import partial
+from django.conf import settings
+from django.conf.urls.static import static
 
 # API Router
 router = DefaultRouter()
@@ -20,6 +22,13 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(next_page='visitantes:visitante_list'), name='logout'),
     path('admin/logout/', RedirectView.as_view(url='/logout/', permanent=True)),
 ]
+
+# Serve static files during development and in production
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+else:
+    # For production/PyInstaller builds, also add static file serving
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 handler400 = partial(generic_error_view, status_code=400)
 handler403 = partial(generic_error_view, status_code=403)
