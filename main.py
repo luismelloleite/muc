@@ -23,24 +23,6 @@ def get_app_directory():
         # Executando como script Python
         return Path(__file__).parent
 
-def get_data_directory():
-    """
-    Retorna o diretório onde os dados devem ser armazenados persistentemente.
-    """
-    if getattr(sys, 'frozen', False):
-        # Executando como .exe - usar LOCALAPPDATA
-        app_data = os.getenv('LOCALAPPDATA')
-        if not app_data:
-            # Fallback para APPDATA se LOCALAPPDATA não existir
-            app_data = os.getenv('APPDATA')
-        
-        data_dir = Path(app_data) / 'Portaria MUC UFCAT'
-        data_dir.mkdir(parents=True, exist_ok=True)
-        return data_dir
-    else:
-        # Executando como script Python - usar diretório do projeto
-        return Path(__file__).parent
-
 def check_server_running(host='127.0.0.1', port=8000):
     """Verifica se o servidor já está rodando na porta especificada"""
     import socket
@@ -53,28 +35,18 @@ def check_server_running(host='127.0.0.1', port=8000):
     except:
         return False
 
-def setup_environment():
-    """Configura as variáveis de ambiente necessárias"""
-    app_dir = get_app_directory()
-    data_dir = get_data_directory()
-    
-    # Definir variável de ambiente para o Django
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'portaria_muc.settings')
-    
-    # Definir diretório de dados para o Django settings
-    os.environ['PORTARIA_DATA_DIR'] = str(data_dir)
-    
-    return app_dir, data_dir
-
 def run_django_setup():
     """Executa a configuração inicial do Django (migrações, superuser, etc.)"""
-    app_dir, data_dir = setup_environment()
+    app_dir = get_app_directory()
     
     print("Configurando aplicação...")
     
     # Mudar para o diretório da aplicação
     original_dir = os.getcwd()
     os.chdir(app_dir)
+    
+    # Definir variável de ambiente para o Django
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'portaria_muc.settings')
     
     try:
         # Carregar variáveis do .env
@@ -108,14 +80,14 @@ def run_django_setup():
         
         try:
             execute_from_command_line(['manage.py', 'create_superuser'])
-            print(f"   Usuário criado: {superuser_username}")
+            print(f"   👤 Usuário criado: {superuser_username}")
         except SystemExit:
             # create_superuser pode dar SystemExit, mas é normal
-            print(f"   Usuário configurado: {superuser_username}")
+            print(f"   👤 Usuário configurado: {superuser_username}")
         except Exception as e:
-            print(f"      Aviso: {e}")
+            print(f"      ⚠️  Aviso: {e}")
         
-        print("Configuração concluída!")
+        print("✅ Configuração concluída!")
         return True
         
     except Exception as e:
@@ -127,13 +99,16 @@ def run_django_setup():
 
 def start_server():
     """Inicia o servidor Django usando runserver --noreload"""
-    app_dir, data_dir = setup_environment()
+    app_dir = get_app_directory()
     
     print("Iniciando servidor...")
     
     # Mudar para o diretório da aplicação
     original_dir = os.getcwd()
     os.chdir(app_dir)
+    
+    # Definir variável de ambiente para o Django
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'portaria_muc.settings')
     
     try:
         # Importar Django para usar management commands
@@ -153,7 +128,7 @@ def start_server():
             "--noreload"
         ])
         
-        print("Servidor iniciado com sucesso!")
+        print("✅ Servidor iniciado com sucesso!")
         return True
         
     except KeyboardInterrupt:
@@ -181,14 +156,29 @@ def open_browser():
 
 def check_first_run():
     """Verifica se é a primeira execução do sistema"""
-    data_dir = get_data_directory()
-    flag_file = data_dir / '.portaria_configured'
+    app_dir = get_app_directory()
+    
+    # Se executando como .exe, verificar na pasta onde está o executável
+    if getattr(sys, 'frozen', False):
+        # Executável: verificar na pasta do executável
+        exe_dir = Path(sys.executable).parent
+        flag_file = exe_dir / '.portaria_configured'
+    else:
+        # Desenvolvimento: verificar na pasta da aplicação
+        flag_file = app_dir / '.portaria_configured'
+    
     return not flag_file.exists()
 
 def mark_as_configured():
     """Marca o sistema como configurado"""
-    data_dir = get_data_directory()
-    flag_file = data_dir / '.portaria_configured'
+    app_dir = get_app_directory()
+    
+    # Se executando como .exe, criar flag na pasta onde está o executável
+    if getattr(sys, 'frozen', False):
+        exe_dir = Path(sys.executable).parent
+        flag_file = exe_dir / '.portaria_configured'
+    else:
+        flag_file = app_dir / '.portaria_configured'
     
     try:
         flag_file.write_text(f"Configurado em: {time.strftime('%d/%m/%Y %H:%M:%S')}")
@@ -250,13 +240,16 @@ def main():
 
 def run_schedule_sync():
     """Executa o comando schedule_sync do Django"""
-    app_dir, data_dir = setup_environment()
+    app_dir = get_app_directory()
     
     print("Configurando sincronização automática...")
     
     # Mudar para o diretório da aplicação
     original_dir = os.getcwd()
     os.chdir(app_dir)
+    
+    # Definir variável de ambiente para o Django
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'portaria_muc.settings')
     
     try:
         # Carregar variáveis do .env
@@ -271,11 +264,11 @@ def run_schedule_sync():
         django.setup()
         
         # Executar schedule_sync
-        print("   Criando agendamento de sincronização...")
+        print("   ⏰ Criando agendamento de sincronização...")
         execute_from_command_line(['manage.py', 'schedule_sync'])
         
-        print("Sincronização automática configurada!")
-        print("   Executará diariamente à meia-noite")
+        print("✅ Sincronização automática configurada!")
+        print("   📅 Executará diariamente à meia-noite")
         return True
         
     except Exception as e:
