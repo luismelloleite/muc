@@ -21,6 +21,8 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Diretório de dados persistentes (definido pelo main.py quando executando como .exe)
+DATA_DIR = Path(os.environ.get('PORTARIA_DATA_DIR', BASE_DIR))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -90,7 +92,7 @@ WSGI_APPLICATION = 'portaria_muc.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': DATA_DIR / 'db.sqlite3',
     },
     'external': {
         'ENGINE': 'django.db.backends.postgresql',
