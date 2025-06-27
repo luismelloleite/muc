@@ -8,28 +8,33 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         try:
-            # Caminho para o script de sincronização
-            project_path = settings.BASE_DIR
-            python_path = sys.executable
-            manage_path = os.path.join(project_path, 'manage.py')
-            sync_command = f'"{python_path}" "{manage_path}" sync_visitantes'
+            if getattr(sys, 'frozen', False):
+                exe_path = sys.executable
+                # Comando para executar sync via .exe
+                sync_command = f'"{exe_path}" schedule_sync'
+                # Usar DATA_DIR (LOCALAPPDATA) para o batch
+                batch_dir = settings.DATA_DIR
+            else:
+                project_path = settings.BASE_DIR
+                python_path = sys.executable
+                manage_path = os.path.join(project_path, 'manage.py')
+                sync_command = f'"{python_path}" "{manage_path}" sync_visitantes'
+                # Usar diretório do projeto para desenvolvimento
+                batch_dir = project_path
 
-            # Cria o arquivo batch para executar a sincronização
-            batch_path = os.path.join(project_path, 'sync_visitantes.bat')
+            batch_path = os.path.join(batch_dir, 'sync_visitantes.bat')
             with open(batch_path, 'w') as f:
                 f.write(f'@echo off\n')
-                f.write(f'cd /d "{project_path}"\n')
+                f.write(f'cd /d "{batch_dir}"\n')
                 f.write(f'{sync_command}\n')
                 f.write(f'exit\n')
 
-            # Cria o comando para agendar a tarefa
             task_name = "Sincronização de Visitantes"
             task_command = (
                 f'schtasks /create /tn "{task_name}" /tr "{batch_path}" '
                 f'/sc daily /st 00:00 /ru SYSTEM /f'
             )
 
-            # Executa o comando para criar a tarefa agendada
             os.system(task_command)
 
             self.stdout.write(self.style.SUCCESS('Tarefa agendada criada com sucesso!'))
@@ -37,4 +42,4 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS('A sincronização será executada diariamente à meia-noite.'))
 
         except Exception as e:
-            self.stdout.write(self.style.ERROR(f'Erro ao criar o agendamento: {str(e)}')) 
+            self.stdout.write(self.style.ERROR(f'Erro ao criar o agendamento: {str(e)}'))
