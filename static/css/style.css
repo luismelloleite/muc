@@ -1,0 +1,64 @@
+.row {
+    width: 100%;
+}
+
+.header-menu-trigger {
+    display: none;
+}
+
+.br-footer {
+    padding: 0;
+}
+
+.transparent {
+    background-color: transparent !important;
+    background: transparent !important;
+}
+
+.grid-row-flex {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.grid-row-width-30 {
+    width: 30%;
+}
+
+[data-target-checkbox] {
+    cursor: pointer;
+}
+
+.custom-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050; /* Garante que o modal fique sobre outros elementos */
+    padding: 15px;
+}
+
+.custom-modal-content {
+    background-color: #fff;
+    padding: 25px 30px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    text-align: left; /* Alinhamento do texto à esquerda para melhor leitura */
+    min-width: 320px;
+    max-width: 500px;
+    width: auto;
+}
+
+.custom-modal-content p {
+    font-size: 1rem; /* Tamanho de fonte padrão */
+    line-height: 1.5;
+}
+
+/* Ajuste para margem entre botões se estiver usando classes como mr-2 */
+.custom-modal-content .br-button.mr-2 {
+    margin-right: 0.5rem; /* Equivalente a mr-2 do Bootstrap, ajuste se necessário */
+}
