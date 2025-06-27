@@ -7,6 +7,7 @@ usando PyInstaller com todas as configurações necessárias para Django
 import os
 import sys
 import shutil
+import subprocess
 from pathlib import Path
 
 def clean_build_directories():
@@ -15,13 +16,44 @@ def clean_build_directories():
     
     for dir_name in dirs_to_clean:
         if os.path.exists(dir_name):
-            print(f"🧹 Removendo {dir_name}/")
+            print(f"Removendo {dir_name}/")
             shutil.rmtree(dir_name)
     
     # Remove arquivos .spec antigos
     for spec_file in Path('.').glob('*.spec'):
-        print(f"🧹 Removendo {spec_file}")
+        print(f"Removendo {spec_file}")
         spec_file.unlink()
+
+def run_collectstatic():
+    """Executa collectstatic antes do build"""
+    print("Executando collectstatic...")
+    
+    try:
+        # Configurar ambiente Django
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'portaria_muc.settings')
+        
+        # Carregar dotenv se existir
+        try:
+            from dotenv import load_dotenv
+            load_dotenv()
+        except ImportError:
+            pass
+        
+        # Executar collectstatic
+        result = subprocess.run([
+            sys.executable, 'manage.py', 'collectstatic', '--noinput', '--clear'
+        ], capture_output=True, text=True)
+        
+        if result.returncode == 0:
+            print("Collectstatic executado com sucesso!")
+            return True
+        else:
+            print(f"Erro no collectstatic: {result.stderr}")
+            return False
+            
+    except Exception as e:
+        print(f"Erro ao executar collectstatic: {e}")
+        return False
 
 def get_django_hidden_imports():
     """Retorna lista de imports hidden necessários para Django"""
@@ -34,7 +66,7 @@ def get_django_hidden_imports():
         'django.contrib.messages',
         'django.contrib.staticfiles',
         
-        # Django templatetags (reduz warnings)
+        # Django templatetags
         'django.contrib.auth.templatetags',
         'django.contrib.contenttypes.templatetags',
         'django.contrib.sessions.templatetags',
@@ -45,10 +77,11 @@ def get_django_hidden_imports():
         'crispy_forms',
         'crispy_bootstrap5',
         'crispy_bootstrap5.templatetags',
-        'dotenv',  # Importante! python-dotenv
+        'dotenv',
         'psycopg2',
         'waitress',
         'whitenoise',
+        'whitenoise.storage',
         
         # App específico
         'visitantes',
@@ -63,6 +96,8 @@ def get_django_hidden_imports():
         'visitantes.management',
         'visitantes.management.commands',
         'visitantes.management.commands.create_superuser',
+        'visitantes.management.commands.schedule_sync',
+        'visitantes.management.commands.sync_visitantes',
         
         # Projeto
         'portaria_muc.settings',
@@ -75,6 +110,7 @@ def get_django_hidden_imports():
         'django.core.management.commands',
         'django.core.management.commands.migrate',
         'django.core.management.commands.runserver',
+        'django.core.management.commands.collectstatic',
     ]
 
 def get_data_files():
@@ -85,11 +121,15 @@ def get_data_files():
     if os.path.exists('templates'):
         data_files.append(('templates', 'templates'))
     
-    # Static files  
+    # Static files originais
     if os.path.exists('static'):
         data_files.append(('static', 'static'))
     
-    # Logo (se existir)
+    # Staticfiles (resultado do collectstatic) - IMPORTANTE!
+    if os.path.exists('staticfiles'):
+        data_files.append(('staticfiles', 'staticfiles'))
+    
+    # Logo
     if os.path.exists('logo.png'):
         data_files.append(('logo.png', '.'))
     
@@ -134,7 +174,7 @@ icon_path = 'logo.png' if os.path.exists('logo.png') else None
 # Hidden imports para Django
 hidden_imports = {hidden_imports}
 
-# Arquivos de dados
+# Arquivos de dados (incluindo staticfiles)
 datas = {data_files}
 
 # Análise do script principal
@@ -148,14 +188,13 @@ a = Analysis(
     hooksconfig={{}},
     runtime_hooks=[],
     excludes=[
-        'tkinter',  # GUI não necessária
-        'matplotlib',  # Gráficos não usados
-        'numpy',  # Se não usado
-        'PIL',  # Imagens não necessárias
-        'mx',  # mx.DateTime warnings
-        'django.db.backends.oracle',  # Oracle não usado
-        'django.db.backends.mysql',  # MySQL não usado (se não usar)
-        'django.db.backends.postgresql',  # PostgreSQL (manter se usar)
+        'tkinter',
+        'matplotlib',
+        'numpy',
+        'PIL',
+        'mx',
+        'django.db.backends.oracle',
+        'django.db.backends.mysql',
     ],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
@@ -178,16 +217,16 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,  # Compressão
+    upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=True,  # Manter console para debug
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=icon_path,  # Logo como ícone
+    icon=icon_path,
 )
 '''
     
@@ -195,16 +234,12 @@ exe = EXE(
         f.write(spec_content)
     
     print("Arquivo 'Portaria MUC UFCAT.spec' criado!")
-    if os.path.exists('logo.png'):
-        print("Logo detectado e será usado como ícone!")
 
 def run_pyinstaller():
     """Executa o PyInstaller com as configurações"""
     
-    print("🔨 Executando PyInstaller...")
-    print("   (Logs em tempo real - pode demorar alguns minutos...)\n")
+    print("Executando PyInstaller...")
     
-    # Comando PyInstaller
     cmd = [
         'pyinstaller',
         '--clean',
@@ -213,9 +248,6 @@ def run_pyinstaller():
     ]
     
     try:
-        import subprocess
-        
-        # Executar com logs em tempo real
         process = subprocess.Popen(
             cmd, 
             stdout=subprocess.PIPE, 
@@ -225,7 +257,6 @@ def run_pyinstaller():
             universal_newlines=True
         )
         
-        # Mostrar saída em tempo real
         while True:
             output = process.stdout.readline()
             if output == '' and process.poll() is not None:
@@ -233,14 +264,13 @@ def run_pyinstaller():
             if output:
                 print(f"   {output.strip()}")
         
-        # Verificar código de retorno
         return_code = process.poll()
         
         if return_code == 0:
-            print("\nBuild concluído com sucesso!")
+            print("Build concluído com sucesso!")
             return True
         else:
-            print(f"\nPyInstaller falhou com código: {return_code}")
+            print(f"PyInstaller falhou com código: {return_code}")
             return False
         
     except FileNotFoundError:
@@ -254,7 +284,6 @@ def post_build_cleanup():
     """Limpeza após build"""
     print("Limpeza pós-build...")
     
-    # Manter apenas o executável em dist/
     if os.path.exists('build'):
         shutil.rmtree('build')
         print("Diretório build/ removido")
@@ -274,13 +303,9 @@ def show_results():
         print(f"Executável: {exe_path.absolute()}")
         print(f"Tamanho: {size_mb:.1f} MB")
         print(f"Finalizado em: {build_end_time}")
-        if os.path.exists('logo.png'):
-            print(f"Logo: Incluído como ícone")
-        print("\nPróximo passo:")
-        print("Use com Inno Setup para criar instalador usando o arquivo Portaria MUC UFCAT.iss")
         print("=" * 60)
     else:
-        print(f"\nExecutável não foi gerado! (Finalizado em: {build_end_time})")
+        print(f"Executável não foi gerado! (Finalizado em: {build_end_time})")
 
 def main():
     """Função principal do build"""
@@ -288,19 +313,19 @@ def main():
     print("  BUILD DO SISTEMA DE CONTROLE DE VISITANTES")
     print("=" * 60)
     
-    # Verificar se estamos no diretório correto
+    # Verificações
     if not os.path.exists('manage.py'):
         print("Erro: manage.py não encontrado!")
         return
     
     if not os.path.exists('main.py'):
         print("Erro: main.py não encontrado!")
-        print("Certifique-se de ter criado o arquivo main.py")
         return
     
     # Processo de build
     steps = [
         ("Limpando builds anteriores", clean_build_directories),
+        ("Executando collectstatic", run_collectstatic),
         ("Criando arquivo .spec", create_spec_file),  
         ("Executando PyInstaller", run_pyinstaller),
         ("Limpeza pós-build", post_build_cleanup),
@@ -308,15 +333,15 @@ def main():
     ]
     
     for step_name, step_func in steps:
-        print(f"\n🔄 {step_name}...")
-        if step_func == run_pyinstaller:
+        print(f"\n{step_name}...")
+        if step_func in [run_collectstatic, run_pyinstaller]:
             if not step_func():
                 print("Build falhou!")
                 return
         else:
             step_func()
     
-    print("\nProcesso concluído!")
+    print("Processo concluído!")
 
 if __name__ == "__main__":
     main()
